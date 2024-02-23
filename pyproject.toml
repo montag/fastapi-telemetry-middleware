@@ -1,0 +1,53 @@
+[tool.poetry]
+name = "fastapi-telemetry-middleware"
+version = "0.1.0"
+description = "FastApi trace and metric auto-instrumentation"
+authors = ["Michael Montagna <michael.montagna@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "fastapi_telemetry_middleware"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+starlette = ">=0.36.3,<0.37.0"
+prometheus-client = "^0.20.0"
+opentelemetry-sdk = "^1.22.0"
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.2.0"
+pytest = "^8.0.1"
+pytest-cov = "^4.1.0"
+isort = "^5.13.2"
+bandit = "^1.7.7"
+
+[tool.black]
+line-length = 120
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+atomic = true
+multi_line_output = 3
+include_trailing_comma = true
+line_length = 120
+skip_glob = [
+    "*/.venv/**",
+    "*/docs/**",
+    "*/build/**",
+    "*/dist/**",
+]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
