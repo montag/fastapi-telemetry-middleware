@@ -1,10 +1,13 @@
 import time
+import logging
 
 from opentelemetry import trace
 from prometheus_client import Counter, Gauge, Histogram
 from starlette.middleware import _MiddlewareClass
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 from starlette.types import ASGIApp, Receive, Scope, Send
+
+logger = logging.getLogger(__name__)
 
 APP_INFO = Gauge("fastapi_app_info", "App info", ["app_name"])
 REQUESTS_COUNTER = Counter(
@@ -49,8 +52,9 @@ class FastapiTelemetryMiddleware(_MiddlewareClass):
             APP_INFO.labels(app_name=self.app_name).inc()
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        type = scope["type"]
-        if type != "http":  # pragma: no cover
+        logger.info("_call__ %s", scope)
+        call_type = scope["type"]
+        if call_type != "http":  # pragma: no cover
             await self.app(scope, receive, send)
             return
 
@@ -76,7 +80,7 @@ class FastapiTelemetryMiddleware(_MiddlewareClass):
             response_status = HTTP_500_INTERNAL_SERVER_ERROR
             if self.enable_metrics:
                 EXCEPTIONS.labels(
-                    method=method, path=path, exception_type=type(e).__name__, app_name=self.app_name
+                    method=method, path=path, exception_type=call_type(e).__name__, app_name=self.app_name
                 ).inc()
             raise e from None
 
@@ -84,6 +88,7 @@ class FastapiTelemetryMiddleware(_MiddlewareClass):
             end_time = time.perf_counter()
             span = trace.get_current_span()
             trace_id = trace.format_trace_id(span.get_span_context().trace_id)
+            logger.info("_call__ %s %s %s", trace, span, trace_id)
             if self.enable_metrics:
                 REQUESTS_PROCESSING_TIME.labels(method=method, path=path, app_name=self.app_name).observe(
                     end_time - start_time, exemplar={"TraceID": trace_id}
