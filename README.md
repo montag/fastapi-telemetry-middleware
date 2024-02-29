@@ -64,8 +64,7 @@ from opentelemetry import trace
 
 def setup_tracing(app: FastAPI, app_name: str = 'default_app', otlp_endpoint: str = 'http://localhost:4318'):
     resource = Resource(attributes={
-        SERVICE_NAME: app_name,
-        "compose_service": app_name
+        SERVICE_NAME: app_name
 
     })
     trace_provider = TracerProvider(resource=resource)
